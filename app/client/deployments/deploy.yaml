@@ -29,11 +29,11 @@ spec:
             - name: SERVICE_NAME
               value: "otel-istio-tracing-client"
             - name: OTEL_COLLECTOR_ADDRESS
-              value: sample-collector.observability.svc.cluster.local:4317"
+              value: "sample-collector.observability.svc.cluster.local:4317"
             - name: SLEEP
               value: "5"
             - name: SERVER_ADDRESS
-              value: "otel-istio-tracing-server.istio-trace-work.svc.cluster.local"
+              value: "http://otel-istio-tracing-server.istio-trace-work.svc.cluster.local:8080"
           resources:
             limits:
               cpu: 250m

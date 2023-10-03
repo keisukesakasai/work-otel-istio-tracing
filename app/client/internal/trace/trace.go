@@ -10,7 +10,9 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -24,10 +26,13 @@ func InitTracer() (*sdktrace.TracerProvider, error) {
 	logger := logging.GetLoggerFromCtx(ctx)
 
 	otelCollectorAddress := os.Getenv(OtelCollectorAddressEnv)
+	logger.Infof("otel collector address: %s", otelCollectorAddress)
 
 	conn, err := grpc.DialContext(ctx,
 		otelCollectorAddress,
-		grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithBlock(),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create gRPC connection to collector: %w", err)
 	}
@@ -37,9 +42,19 @@ func InitTracer() (*sdktrace.TracerProvider, error) {
 		return nil, fmt.Errorf("failed to create trace exporter: %w", err)
 	}
 
+	res, err := resource.New(ctx,
+		resource.WithAttributes(
+			semconv.ServiceNameKey.String("otel-istio-tracing-client"),
+		),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create resource: %w", err)
+	}
+
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(sdktrace.AlwaysSample()),
 		sdktrace.WithBatcher(exporter),
+		sdktrace.WithResource(res),
 	)
 	otel.SetTracerProvider(tp)
 

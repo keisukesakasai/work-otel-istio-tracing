@@ -29,7 +29,7 @@ spec:
             - name: SERVICE_NAME
               value: "otel-istio-tracing-server"
             - name: OTEL_COLLECTOR_ADDRESS
-              value: sample-collector.observability.svc.cluster.local:4317"
+              value: sample-collector.observability.svc.cluster.local:4317
           resources:
             limits:
               cpu: 250m
