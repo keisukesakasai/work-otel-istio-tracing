@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	logging "server/internal/log"
 	tracing "server/internal/trace"
 	"time"
 
@@ -42,12 +43,17 @@ func Handler(c *gin.Context) {
 }
 
 func generateRandomWord(c *gin.Context) string {
-	_, span := tracer.Start(c.Request.Context(), "generateRandomWord")
+	ctx := c.Request.Context()
+	logger := logging.GetLoggerFromCtx(ctx)
+	_, span := tracer.Start(ctx, "generateRandomWord")
 	defer span.End()
 
 	words := []string{"apple", "banana", "cherry", "date", "elderberry"}
 
 	seed := time.Now().UnixNano()
 	rand.New(rand.NewSource(seed))
-	return words[rand.Intn(len(words))]
+
+	word := words[rand.Intn(len(words))]
+	logger.Infof("response: %s", word)
+	return word
 }
