@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-istio-tracing-server
+  namespace: istio-trace-work
+  labels:
+    app: otel-istio-tracing-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-istio-tracing-server
+  template:
+    metadata:
+      labels:
+        app: otel-istio-tracing-server
+    spec:
+      containers:
+        - name: otel-istio-tracing-server
+          image: ghcr.io/keisukesakasai/app/otel-istio-tracing-server:latest
+          ports:
+            - containerPort: 8080
+          imagePullPolicy: Always
+          env:  
+            - name: LOG_LEVEL
+              value: "info"
+            - name: APP_VERSION
+              value: "v1.0.0"
+            - name: SERVICE_NAME
+              value: "otel-istio-tracing-server"
+            - name: OTEL_COLLECTOR_ADDRESS
+              value: sample-collector.observability.svc.cluster.local:4317"
+          resources:
+            limits:
+              cpu: 250m
+              memory: 250Mi
+            requests:
+              cpu: 100m
+              memory: 100Mi                
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-istio-tracing-server
+  namespace: istio-trace-work
+spec:
+  selector:
+    app: otel-istio-tracing-server
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080              
